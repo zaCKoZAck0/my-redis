@@ -9,5 +9,4 @@
 ## Concepts
 - [Network Protocols](concepts/1_Network_Protocols.md)
 - [TCP](concepts/2_TCP.md)
-- [Python Socket HOWTO](https://docs.python.org/3/howto/sockets.html#using-a-socket)
 - [Redis Protocol](https://redis.io/docs/latest/develop/reference/protocol-spec/)
