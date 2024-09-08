@@ -8,7 +8,11 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
   // Handle connection
   connection.on("data", (data: Buffer) => {
     console.log("Received:", JSON.stringify(data.toString()));
-    connection.write("+PONG\r\n");
+    for (const command of data.toString().split("\\n")) {
+        if (command.trim() === "PING") {
+            connection.write("+PONG\r\n");
+        }
+    }
   });
 });
 
