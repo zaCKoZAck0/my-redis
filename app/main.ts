@@ -8,7 +8,7 @@ console.log("Logs from your program will appear here!");
 const server: net.Server = net.createServer((connection: net.Socket) => {
 
     connection.on("connect", () => {
-        console.log("Connected");
+        console.log("Connected to client");
     });
 
     connection.on("data", (data: Buffer) => {
