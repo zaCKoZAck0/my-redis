@@ -128,8 +128,8 @@ export class Redis {
         return false;
     }
 
-    private setExpiry(key: string, ttl: number): void {
-        const expiry = Date.now() + ttl;
+    private setExpiry(key: string, ttl: string): void {
+        const expiry = Date.now() + parseInt(ttl);
         console.log("Setting expiry", Date.now(), expiry);
         this.expiry.set(key, expiry);
     }
