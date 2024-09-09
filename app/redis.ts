@@ -1,5 +1,8 @@
 import { RedisError } from "./errors";
 
+/**
+ * Commands supported by the Redis server
+ */
 enum COMMANDS {
     ECHO = "ECHO", 
     PING = "PING",
@@ -7,18 +10,21 @@ enum COMMANDS {
     SET = "SET"
 }
 
-
+/**
+ * Status of the command execution
+ */
 enum STATUS {
     OK = "OK",
     NO = "NO",
     NULL = "NULL"
 }
 
+
 /**
- * RedisParser class implements "Redis serialization protocol specification" (RESP).
+ * Redis server implementation
  * 
- * Reference: https://redis.io/docs/latest/develop/reference/protocol-spec/
- */
+ * The Redis server should be able to parse and serialize data according to the Redis protocol.
+ **/
 export class Redis {
     private readonly CRLF = "\r\n";
 
@@ -30,11 +36,19 @@ export class Redis {
     };
 
     private store: Map<string, any>;
+    private expiry: Map<string, number>;
 
     constructor() {
         this.store = new Map();
+        this.expiry = new Map();
     }
 
+    /**
+     * Reference: https://redis.io/docs/latest/develop/reference/protocol-spec/
+     * 
+     * @param data 
+     * @returns parsed data according to the Redis protocol
+     */
     parse(data: string): any  {
         const firstByte = data[0];
         switch (firstByte) {
@@ -97,6 +111,11 @@ export class Redis {
         }  
     }
 
+    serializeBulkString(data: string | null): string {
+        if (data === null) return "$-1\r\n";
+        return `$${data.length}\r\n${data}${this.CRLF}`;
+    }
+
     run(args: any[]): string {
         const command: COMMANDS = args[0].toUpperCase();
         console.log(command);
@@ -107,24 +126,35 @@ export class Redis {
                 return this.serialize("PONG");
             case COMMANDS.GET:
                 if (args.length < 2) return this.serialize(new RedisError("ERR wrong number of arguments for 'get' command"));
-                console.log(this.store);
-                return this.serialize(this.get(args[1]) as string);
+                const res = this.get(args[1]);
+                if (res === null) return this.serializeBulkString(STATUS.NULL);
+                return this.serialize(res);
             case COMMANDS.SET:
                 if (args.length < 3) return this.serialize(new RedisError("ERR wrong number of arguments for 'set' command"));
-                const key = args[1] as string;
-                const value = args[2] as string;
-                this.set(key, value);
-                return this.serialize(STATUS.OK);
+                return this.serialize(this.set(args[1], args[2]));
             default:
                 return this.serialize(new RedisError("ERR unknown command"));
         }
     }
 
+    private isExpired(key: string): boolean {
+        const expiry = this.expiry.get(key);
+        if (expiry && expiry < Date.now()) {
+            return true;
+        }
+        return false;
+    }
+
+    private setExpiry(key: string, ttl: number, ): void {}
+
     get(key: string): string | null {
+        if (this.isExpired(key))
+            return null;
         return this.store.get(key) || null;
     }
 
-    set(key: string, value: string): void {
+    set(key: string, value: string): boolean {
         this.store.set(key, value);
+        return true;
     }
 }
