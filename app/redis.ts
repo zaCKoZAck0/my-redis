@@ -79,7 +79,7 @@ export class Redis {
 
     set(key: string, value: string, ...args: any[]): boolean {
         if (args.length > 0) {
-            const expiry = new Date(Date.now() + parseInt(args[0]));
+            const expiry = new Date(Date.now() + parseInt(args[1]));
             const ttl = expiry.getMilliseconds();
             this.setExpiry(key, ttl);
         }
