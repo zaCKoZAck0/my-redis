@@ -129,7 +129,7 @@ export class Redis {
     }
 
     private setExpiry(key: string, ttl: number): void {
-        const expiry = Date.now(). + ttl;
+        const expiry = Date.now() + ttl;
         console.log("Setting expiry", key, expiry);
         this.expiry.set(key, expiry);
     }
