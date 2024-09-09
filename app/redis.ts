@@ -100,12 +100,11 @@ export class Redis {
     }
 
     private SET(key: string, value: string, args: any[]): SERIALIZED {
+        if (args.length > 0) this.setWithArgs(key, value, args);
         console.log(key, value, args);
         return this.parser.serialize(
             this.set(key, value)
         );
-
-        
     }
 
     private CONFIG(args: any[]): SERIALIZED {
@@ -161,7 +160,7 @@ export class Redis {
     }
 
     private setWithArgs(key:string, value: string, args: any[]) {
-        for (let i = 0; i < args.length; i+2) {
+        for (let i = 0; i < args.length; i+=2) {
             switch (args[i].toUpperCase()) {
                 case COMMANDS.PX:
                     if (args.length < i+2) break;
