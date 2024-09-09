@@ -100,8 +100,8 @@ export class Redis {
     }
 
     private SET(key: string, value: string, args: any[]): SERIALIZED {
-        console.log(key, value, args);
         if (args.length > 0) this.setWithArgs(key, value, args);
+        console.log(key, value, args);
         return this.parser.serialize(
             this.set(key, value)
         );
