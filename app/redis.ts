@@ -12,28 +12,34 @@ enum COMMANDS {
 
     // expiry
     PX = "PX",
+
+    // config
+    CONFIG = "CONFIG"
 }
 
-type Redis_Config = {
+export type Redis_Config = {
     dir: string;
     dbfilename: string;
 }
 
 class RedisConfig {
-    private dir: string;
-    private dbfilename: string;
+    private store: Map<string, string>;
 
-    constructor(dir?: string, dbfilename?: string) {
-        this.dir = dir ?? "dir";
-        this.dbfilename = dbfilename ?? "/tmp/redis-data";
-    }
-
-    getConfig(): Redis_Config {
-        return {
-            dir: this.dir,
-            dbfilename: this.dbfilename
+    constructor(config?: Redis_Config) {
+        const defaultConfig: Redis_Config = {
+            dir: "/tmp/redis-files",
+            dbfilename: "dump.rdb"
         };
+        this.store = new Map();
+        for (const [key, value] of Object.entries(config ?? defaultConfig)) {
+            this.store.set(key, value);
+        }
     }
+
+    get(key: string): string | null {
+        return this.store.get(key) ?? null;
+    }
+    
 }
 
 /**
@@ -51,7 +57,7 @@ export class Redis {
         this.store = new Map();
         this.expiry = new Map();
         this.parser = new RedisParser();
-        this.config = new RedisConfig(config?.dir, config?.dbfilename);
+        this.config = new RedisConfig(config);
         // Delete expired keys every 10 minutes
         setInterval(() => this.deleteExpiredKeys(), 10000 * 60);
     }
@@ -71,6 +77,8 @@ export class Redis {
             case COMMANDS.SET:
                 if (args.length < 3) return this.parser.serialize(new RedisError("ERR wrong number of arguments for 'set' command"));
                 return this.SET(args[1], args[2], args.slice(3));
+            case COMMANDS.CONFIG:
+                return this.CONFIG(args.slice(1));
             default:
                 return this.parser.serialize(new RedisError("ERR unknown command"));
         }
@@ -93,6 +101,19 @@ export class Redis {
     private SET(key: string, value: string, args: any[]): SERIALIZED {
         if (args.length > 0) this.setWithArgs(key, value, args);
         return this.parser.serialize(this.set(key, value));
+    }
+
+    private CONFIG(args: any[]): SERIALIZED {
+        if (args.length < 1) return this.parser.serialize(new RedisError("ERR wrong number of arguments for 'config' command"));
+        const subCommand = args[0].toUpperCase();
+        switch (subCommand) {
+            case "GET":
+                return this.parser.serialize(
+                    this.config.get(args[1])
+                );
+            default:
+                return this.parser.serialize(new RedisError("ERR unknown CONFIG subcommand"));
+        }
     }
 
     private isExpired(key: string): boolean {
