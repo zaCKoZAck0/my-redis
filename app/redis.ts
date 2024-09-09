@@ -107,9 +107,9 @@ export class Redis {
         if (args.length < 1) return this.parser.serialize(new RedisError("ERR wrong number of arguments for 'config' command"));
         const subCommand = args[0].toUpperCase();
         switch (subCommand) {
-            case "GET":
-                return this.parser.serialize(
-                    this.config.get(args[1])
+            case COMMANDS.GET:
+                return this.parser.serializeArray(
+                    [subCommand.toLowerCase(), this.config.get(args[1])]
                 );
             default:
                 return this.parser.serialize(new RedisError("ERR unknown CONFIG subcommand"));

@@ -62,7 +62,7 @@ export class RedisParser {
         return input.match(pattern) || [];
     }
 
-    serialize(data: string | number | boolean | null | RedisError): string {
+    serialize(data: string | number | boolean | null | RedisError): SERIALIZED {
         if (typeof data === "string") {
             return `+${data}${this.CRLF}`;
         } else if (typeof data === "number") {
@@ -78,8 +78,17 @@ export class RedisParser {
         }  
     }
 
-    serializeBulkString(data: string | null): string {
+    serializeBulkString(data: string | null): SERIALIZED {
         if (data === null) return "$-1\r\n";
         return `$${data.length}\r\n${data}${this.CRLF}`;
+    }
+
+    serializeArray(data: string[]): SERIALIZED {
+        const length = data.length;
+        let result = `*${length}\r\n`;
+        for (const item of data) {
+            result += this.serialize(item);
+        }
+        return result;
     }
 }
