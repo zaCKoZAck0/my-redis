@@ -8,18 +8,11 @@ enum COMMANDS {
     ECHO = "ECHO", 
     PING = "PING",
     GET = "GET",
-    SET = "SET"
-}
+    SET = "SET",
 
-/**
- * Status of the command execution
- */
-enum STATUS {
-    OK = "OK",
-    NO = "NO",
-    NULL = "NULL"
+    // expiry
+    PX = "PX",
 }
-
 
 /**
  * Redis server implementation
@@ -62,8 +55,6 @@ export class Redis {
 
     private isExpired(key: string): boolean {
         const expiry = this.expiry.get(key);
-        console.log(expiry);
-        console.log(Date.now());
         if (expiry && expiry < Date.now()) {
             return true;
         }
@@ -75,18 +66,29 @@ export class Redis {
     }
 
     get(key: string): string | null {
-        if (this.isExpired(key))
+        if (this.isExpired(key)){
+            this.store.delete(key);
+            this.expiry.delete(key);
             return null;
+        }
         return this.store.get(key) || null;
     }
 
     set(key: string, value: string, args: any[]): boolean {
-        if (args.length > 0) {
-            console.log(args);
-            const expiry = Date.now() + parseInt(args[1]);
-            this.setExpiry(key, expiry);
-        }
+        if (args.length > 0) this.setWithArgs(key, value, args);
+
         this.store.set(key, value);
         return true;
+    }
+
+    private setWithArgs(key:string, value: string, args: any[]) {
+        for (let i = 0; i < args.length; i+2) {
+            switch (args[i].toUpperCase()) {
+                case COMMANDS.PX:
+                    if (args.length < i+2) return;
+                    this.setExpiry(key, args[i+1]);
+                    break;
+            }
+        }
     }
 }
