@@ -163,7 +163,7 @@ export class Redis {
         for (let i = 0; i < args.length; i+2) {
             switch (args[i].toUpperCase()) {
                 case COMMANDS.PX:
-                    if (args.length < i+2) return;
+                    if (args.length < i+2) break;
                     this.setExpiry(key, args[i+1]);
                     break;
             }
