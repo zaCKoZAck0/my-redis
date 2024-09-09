@@ -62,6 +62,8 @@ export class Redis {
 
     private isExpired(key: string): boolean {
         const expiry = this.expiry.get(key);
+        console.log(expiry);
+        console.log(Date.now());
         if (expiry && expiry < Date.now()) {
             return true;
         }
