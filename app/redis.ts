@@ -14,6 +14,27 @@ enum COMMANDS {
     PX = "PX",
 }
 
+type Redis_Config = {
+    dir: string;
+    dbfilename: string;
+}
+
+class RedisConfig {
+    private dir: string;
+    private dbfilename: string;
+
+    constructor(dir?: string, dbfilename?: string) {
+        this.dir = dir ?? "dir";
+        this.dbfilename = dbfilename ?? "/tmp/redis-data";
+    }
+
+    getConfig(): Redis_Config {
+        return {
+            dir: this.dir,
+            dbfilename: this.dbfilename
+        };
+    }
+}
 
 /**
  * Redis server implementation
@@ -24,11 +45,13 @@ export class Redis {
     private store: Map<string, any>;
     private expiry: Map<string, number>;
     private parser: RedisParser;
+    private config: RedisConfig;
 
-    constructor() {
+    constructor(config?: Redis_Config) {
         this.store = new Map();
         this.expiry = new Map();
         this.parser = new RedisParser();
+        this.config = new RedisConfig(config?.dir, config?.dbfilename);
         // Delete expired keys every 10 minutes
         setInterval(() => this.deleteExpiredKeys(), 10000 * 60);
     }

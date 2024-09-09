@@ -4,6 +4,10 @@ import { Redis } from "./redis";
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
 
+// Get arguments from the command line
+const args = process.argv.slice(2);
+console.log(args);
+
 // Uncomment this block to pass the first stage
 const server: net.Server = net.createServer((connection: net.Socket) => {
 
