@@ -1,3 +1,5 @@
+import { RedisError } from "./errors";
+
 enum COMMANDS {
     ECHO, 
     PING,
@@ -79,7 +81,7 @@ export class Redis {
         return input.match(pattern) || [];
     }
 
-    serialize(data: string | number | boolean | null): string {
+    serialize(data: string | number | boolean | null | RedisError): string {
         if (typeof data === "string") {
             return `+${data}${this.CRLF}`;
         } else if (typeof data === "number") {
@@ -88,9 +90,11 @@ export class Redis {
             return data ? `+OK${this.CRLF}` : `+NO${this.CRLF}`;
         } else if (data === null) {
             return `+NULL${this.CRLF}`;
+        } else if (data instanceof RedisError) {
+            return `-${data.message}${this.CRLF}`;
         } else {
-            return `-${data}${this.CRLF}`;
-        }   
+            return `+NULL${this.CRLF}`;
+        }  
     }
 
     run(args: any[]): string {
@@ -102,16 +106,16 @@ export class Redis {
             case COMMANDS.PING:
                 return this.serialize("PONG");
             case COMMANDS.GET:
-                if (args.length < 2) return this.serialize("ERR wrong number of arguments for 'get' command");
+                if (args.length < 2) return this.serialize(new RedisError("ERR wrong number of arguments for 'get' command"));
                 return this.serialize(this.get(args[1]));
             case COMMANDS.SET:
-                if (args.length < 3) return this.serialize("ERR wrong number of arguments for 'set' command");
+                if (args.length < 3) return this.serialize(new RedisError("ERR wrong number of arguments for 'set' command"));
                 const key = args[1] as string;
                 const value = args[2] as string;
                 this.set(key, value);
                 return this.serialize(STATUS.OK);
             default:
-                return this.serialize("ERR unknown command");
+                return this.serialize(new RedisError("ERR unknown command"));
         }
     }
 
