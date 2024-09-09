@@ -76,6 +76,7 @@ export class Redis {
                 if (args.length < 2) return this.parser.serialize(new RedisError("ERR wrong number of arguments for 'get' command"));
                 return this.GET(args[1], args.slice(2));
             case COMMANDS.SET:
+                console.log(args);
                 if (args.length < 3) return this.parser.serialize(new RedisError("ERR wrong number of arguments for 'set' command"));
                 return this.SET(args[1], args[2], args.slice(3));
             case COMMANDS.CONFIG:
