@@ -95,6 +95,7 @@ export class Redis {
 
     run(args: any[]): string {
         const command: COMMANDS = args[0].toUpperCase();
+        console.log(args);
         switch (command) {
             case COMMANDS.ECHO:
                 return this.serialize(args[1]);
