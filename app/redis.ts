@@ -1,6 +1,15 @@
 enum COMMANDS {
-    ECHO = "ECHO", 
-    PING = "PING"
+    ECHO, 
+    PING,
+    GET,
+    SET
+}
+
+
+enum STATUS {
+    OK = "OK",
+    NO = "NO",
+    NULL = "NULL"
 }
 
 /**
@@ -17,6 +26,12 @@ export class Redis {
         STRING: "+",
         NUMBER: ":"
     };
+
+    private store: Map<string, any>;
+
+    constructor() {
+        this.store = new Map();
+    }
 
     parse(data: string): any  {
         const firstByte = data[0];
@@ -85,8 +100,25 @@ export class Redis {
                 return this.serialize(args[1]);
             case COMMANDS.PING:
                 return this.serialize("PONG");
+            case COMMANDS.GET:
+                if (args.length < 2) return this.serialize("ERR wrong number of arguments for 'get' command");
+                return this.serialize(this.get(args[1]));
+            case COMMANDS.SET:
+                if (args.length < 3) return this.serialize("ERR wrong number of arguments for 'set' command");
+                const key = args[1] as string;
+                const value = args[2] as string;
+                this.set(key, value);
+                return this.serialize(STATUS.OK);
             default:
                 return this.serialize("ERR unknown command");
         }
+    }
+
+    get(key: string): string | null {
+        return this.store.get(key) || null;
+    }
+
+    set(key: string, value: string): void {
+        this.store.set(key, value);
     }
 }
