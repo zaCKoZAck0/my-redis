@@ -1,10 +1,10 @@
 import { RedisError } from "./errors";
 
 enum COMMANDS {
-    ECHO, 
-    PING,
-    GET,
-    SET
+    ECHO = "ECHO", 
+    PING = "PING",
+    GET = "GET",
+    SET = "SET"
 }
 
 
