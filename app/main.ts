@@ -14,7 +14,7 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
     });
 
     connection.on("data", (data: Buffer) => {
-        const commands = cache.parse(data.toString('utf-8'))
+        const commands = data.toString('utf-8')
         connection.write(cache.run(commands));
     });
 
