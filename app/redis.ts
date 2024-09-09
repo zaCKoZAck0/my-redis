@@ -14,6 +14,7 @@ enum COMMANDS {
     PX = "PX",
 }
 
+
 /**
  * Redis server implementation
  * 
@@ -28,29 +29,47 @@ export class Redis {
         this.store = new Map();
         this.expiry = new Map();
         this.parser = new RedisParser();
+        // Delete expired keys every 10 minutes
+        setInterval(() => this.deleteExpiredKeys(), 10000 * 60);
     }
 
-    run(input: string): string {
+    run(input: string): SERIALIZED {
         // Parse the input and execute the command
         const args = this.parser.parse(input);
         const command: COMMANDS = args[0].toUpperCase();
         switch (command) {
             case COMMANDS.ECHO:
-                return this.parser.serialize(args[1]);
+                return this.ECHO(args[1], args.slice(2));
             case COMMANDS.PING:
-                return this.parser.serialize("PONG");
+                return this.PING(args.slice(1));
             case COMMANDS.GET:
                 if (args.length < 2) return this.parser.serialize(new RedisError("ERR wrong number of arguments for 'get' command"));
-                const res = this.get(args[1]);
-                if (res === null) return this.parser.serializeBulkString(null);
-                return this.parser.serialize(res);
+                return this.GET(args[1], args.slice(2));
             case COMMANDS.SET:
                 if (args.length < 3) return this.parser.serialize(new RedisError("ERR wrong number of arguments for 'set' command"));
-                console.log(args);
-                return this.parser.serialize(this.set(args[1], args[2], args.slice(3)));
+                return this.SET(args[1], args[2], args.slice(3));
             default:
                 return this.parser.serialize(new RedisError("ERR unknown command"));
         }
+    }
+
+    private ECHO(value: string, args: any[]): SERIALIZED {
+        return this.parser.serialize(value);
+    }
+
+    private PING(args: any[]): SERIALIZED {
+        return this.parser.serialize("PONG");
+    }
+
+    private GET(key: string, args: any[]): SERIALIZED {
+        const res = this.get(key);
+        if (res === null) return this.parser.serializeBulkString(null);
+        return this.parser.serialize(res);
+    }
+
+    private SET(key: string, value: string, args: any[]): SERIALIZED {
+        if (args.length > 0) this.setWithArgs(key, value, args);
+        return this.parser.serialize(this.set(key, value));
     }
 
     private isExpired(key: string): boolean {
@@ -62,21 +81,32 @@ export class Redis {
     }
 
     private setExpiry(key: string, ttl: number): void {
-        this.expiry.set(key, ttl);
+        const expiry = Date.now() + ttl;
+        this.expiry.set(key, expiry);
+    }
+
+    private deleteExpiredKeys() {
+        const now = Date.now();
+        for (const [key, expiryTime] of this.expiry.entries()) {
+            if (expiryTime <= now) {
+                this.deleteRecord(key);
+            }
+        }
+    }
+
+    private deleteRecord(key: string): boolean {
+        return this.store.delete(key) || this.expiry.delete(key);
     }
 
     get(key: string): string | null {
         if (this.isExpired(key)){
-            this.store.delete(key);
-            this.expiry.delete(key);
+            this.deleteRecord(key);
             return null;
         }
         return this.store.get(key) || null;
     }
 
-    set(key: string, value: string, args: any[]): boolean {
-        if (args.length > 0) this.setWithArgs(key, value, args);
-
+    set(key: string, value: string): boolean {
         this.store.set(key, value);
         return true;
     }
