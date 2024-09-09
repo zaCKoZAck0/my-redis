@@ -109,7 +109,7 @@ export class Redis {
         switch (subCommand) {
             case COMMANDS.GET:
                 return this.parser.serializeArray(
-                    [subCommand.toLowerCase(), this.config.get(args[1])]
+                    [args[1], this.config.get(args[1])]
                 );
             default:
                 return this.parser.serialize(new RedisError("ERR unknown CONFIG subcommand"));
