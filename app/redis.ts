@@ -66,7 +66,7 @@ export class Redis {
         // Parse the input and execute the command
         const args = this.parser.parse(input);
         const command: COMMANDS = args[0].toUpperCase();
-        console.log(command);
+        console.log(command, args.slice(1));
         switch (command) {
             case COMMANDS.ECHO:
                 return this.ECHO(args[1], args.slice(2));
@@ -101,7 +101,6 @@ export class Redis {
 
     private SET(key: string, value: string, args: any[]): SERIALIZED {
         if (args.length > 0) this.setWithArgs(key, value, args);
-        console.log(key, value, args);
         return this.parser.serialize(
             this.set(key, value)
         );
