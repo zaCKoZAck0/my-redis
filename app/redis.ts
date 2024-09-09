@@ -66,6 +66,7 @@ export class Redis {
         // Parse the input and execute the command
         const args = this.parser.parse(input);
         const command: COMMANDS = args[0].toUpperCase();
+        console.log(command);
         switch (command) {
             case COMMANDS.ECHO:
                 return this.ECHO(args[1], args.slice(2));
