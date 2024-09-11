@@ -54,7 +54,11 @@ class RedisConfig {
 
 
     private parseRDBFile(data: Uint8Array): void {
-        console.log(data);
+        console.log(this.bytesToString(data));
+    }
+
+    private bytesToString(arr: Uint8Array): string {
+        return arr.reduce((acc, val) => acc + String.fromCharCode(val), "");
     }
 
 
