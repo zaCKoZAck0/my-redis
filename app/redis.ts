@@ -26,6 +26,7 @@ export type Config = {
 
 class RedisConfig {
     private store: Map<string, string>;
+    private filePath: string;
     private data: Uint8Array;
 
     constructor(config?: Config) {
@@ -36,8 +37,8 @@ class RedisConfig {
         };
 
         this.store = new Map();
-        const filePath = path.join(rdbConfig.dir, rdbConfig.dbfilename);
-        this.data = this.readRDBFile(filePath);
+        this.filePath = path.join(rdbConfig.dir, rdbConfig.dbfilename);
+        this.data = this.readRDBFile(this.filePath);
         this.store.set("dir", rdbConfig.dir);
         this.parseRDBFile(this.data);
     }
@@ -54,13 +55,16 @@ class RedisConfig {
 
 
     private parseRDBFile(data: Uint8Array): void {
-        console.log(this.bytesToString(data));
-        if (data.length === 0) throw new RedisError("ERR failed to read RDB file");
-        if (this.bytesToString(data.slice(0, 5)) !== 'REDIS') throw new RedisError("ERR invalid RDB file");
+        if (data.length === 0) return;
+        if (this.bytesToString(data.slice(0, 5)) !== 'REDIS') throw new RedisError(`ERR invalid RDB file ${this.filePath}`);
+
+        console.log(`Parsing RDB file ${this.filePath}`);
+        console.log(`Version: ${this.bytesToString(data.slice(5, 9))}`);
+        
     }
 
     private bytesToString(arr: Uint8Array): string {
-        return Array.from(arr).map((byte) => String.fromCharCode(byte)).join('');
+        return arr.reduce((acc, val) => acc + String.fromCharCode(val), "");
     }
 
 
