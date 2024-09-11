@@ -54,7 +54,7 @@ class RedisConfig {
 
 
     private parseRDBFile(data: Uint8Array): void {
-        console.log(data);
+        console.log(this.bytesToString(data));
         if (data.length === 0) throw new RedisError("ERR failed to read RDB file");
         if (this.bytesToString(data.slice(0, 5)) !== 'REDIS') throw new RedisError("ERR invalid RDB file");
     }
