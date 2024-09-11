@@ -28,6 +28,7 @@ class RedisConfig {
     private store: Map<string, string>;
     private filePath: string;
     private data: Uint8Array;
+    private offset: number;
 
     constructor(config?: Config) {
         const rdbConfig: Config = {
@@ -58,8 +59,20 @@ class RedisConfig {
         if (data.length === 0) return;
         if (this.bytesToString(data.slice(0, 5)) !== 'REDIS') throw new RedisError(`ERR invalid RDB file ${this.filePath}`);
 
+        // Header Section
         console.log(`Parsing RDB file ${this.filePath}`);
         console.log(`Version: ${this.bytesToString(data.slice(5, 9))}`);
+
+        this.offset = 9;
+
+        let eof = false;
+
+        while (!eof && this.offset < data.length) {
+            switch (data[this.offset++]) {
+                case 0xFA:
+                    console.log(`${this.bytesToString(data.slice(this.offset, this.offset + 4))}`);
+            }
+        }
         
     }
 
