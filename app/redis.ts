@@ -54,11 +54,13 @@ class RedisConfig {
 
 
     private parseRDBFile(data: Uint8Array): void {
-        console.log(this.bytesToString(data));
+        console.log(data);
+        if (data.length === 0) throw new RedisError("ERR failed to read RDB file");
+        if (this.bytesToString(data.slice(0, 5)) !== 'REDIS') throw new RedisError("ERR invalid RDB file");
     }
 
     private bytesToString(arr: Uint8Array): string {
-        return arr.reduce((acc, val) => acc + String.fromCharCode(val), "");
+        return Array.from(arr).map((byte) => String.fromCharCode(byte)).join('');
     }
 
 
