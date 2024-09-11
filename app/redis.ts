@@ -41,6 +41,7 @@ class RedisConfig {
         this.filePath = path.join(rdbConfig.dir, rdbConfig.dbfilename);
         this.data = this.readRDBFile(this.filePath);
         this.store.set("dir", rdbConfig.dir);
+        this.offset = 0;
         this.parseRDBFile(this.data);
     }
 
@@ -62,6 +63,7 @@ class RedisConfig {
         // Header Section
         console.log(`Parsing RDB file ${this.filePath}`);
         console.log(`Version: ${this.bytesToString(data.slice(5, 9))}`);
+        console.log(`Contents: ${this.data}`);
 
         this.offset = 9;
 
@@ -69,8 +71,9 @@ class RedisConfig {
 
         while (!eof && this.offset < data.length) {
             switch (data[this.offset++]) {
+                // Metadata Section
                 case 0xFA:
-                    console.log(`${this.bytesToString(data.slice(this.offset, this.offset + 4))}`);
+                    
             }
         }
         
