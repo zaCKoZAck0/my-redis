@@ -1,5 +1,7 @@
+import path from "path";
 import { RedisError } from "./errors";
 import { RedisParser } from "./redis-parser";
+import * as fs from "fs";
 
 /**
  * Commands supported by the Redis server
@@ -17,24 +19,45 @@ enum COMMANDS {
     CONFIG = "CONFIG"
 }
 
-export type Redis_Config = {
+export type Config = {
     dir: string;
     dbfilename: string;
 }
 
 class RedisConfig {
     private store: Map<string, string>;
+    private data: Uint8Array;
 
-    constructor(config?: Redis_Config) {
-        const defaultConfig: Redis_Config = {
+    constructor(config?: Config) {
+        const rdbConfig: Config = {
             dir: "/tmp/redis-files",
-            dbfilename: "dump.rdb"
+            dbfilename: "dump.rdb",
+            ...config
         };
+
         this.store = new Map();
-        for (const [key, value] of Object.entries(config ?? defaultConfig)) {
-            this.store.set(key, value);
+        const filePath = path.join(rdbConfig.dir, rdbConfig.dbfilename);
+        this.data = this.readRDBFile(filePath);
+        this.store.set("dir", rdbConfig.dir);
+        this.parseRDBFile(this.data);
+    }
+
+    private readRDBFile(filePath: string): Uint8Array  {
+        try {
+            const fileData: Uint8Array = fs.readFileSync(filePath);
+            return fileData;
+        } catch (err) {
+            console.error("Error reading file:", err);
+            return new Uint8Array();
         }
     }
+
+
+    private parseRDBFile(data: Uint8Array): void {
+        console.log(data);
+    }
+
+
 
     get(key: string): string | null {
         return this.store.get(key) ?? null;
@@ -53,7 +76,7 @@ export class Redis {
     private parser: RedisParser;
     private config: RedisConfig;
 
-    constructor(config?: Redis_Config) {
+    constructor(config?: Config) {
         this.store = new Map();
         this.expiry = new Map();
         this.parser = new RedisParser();

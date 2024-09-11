@@ -1,5 +1,5 @@
 import * as net from "net";
-import { Redis, Redis_Config } from "./redis";
+import { Redis, Config } from "./redis";
 
 function parseArgs(args: string[]){
     const parsedArgs: {[key: string]: string} = {};
@@ -23,7 +23,7 @@ const parsedArgs = parseArgs(args);
 // Uncomment this block to pass the first stage
 const server: net.Server = net.createServer((connection: net.Socket) => {
 
-    const cache = new Redis(parsedArgs as Redis_Config);
+    const redis = new Redis(parsedArgs as Config);
 
     connection.on("connect", () => {
         console.log("Connected to client");
@@ -31,9 +31,8 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
 
     connection.on("data", (data: Buffer) => {
         const commands = data.toString('utf-8')
-        connection.write(cache.run(commands));
+        connection.write(redis.run(commands));
     });
-
 });
 
 server.listen(6379, "127.0.0.1");
