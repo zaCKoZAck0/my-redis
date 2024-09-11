@@ -9,6 +9,7 @@ function parseArgs(args: string[]){
         }
         parsedArgs[args[i].slice(2)] = args[i + 1];
     }
+    console.log(parsedArgs);
     return parsedArgs;
 }
 

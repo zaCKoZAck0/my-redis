@@ -146,7 +146,7 @@ export class Redis {
         return this.store.delete(key) || this.expiry.delete(key);
     }
 
-    get(key: string): string | null {
+    private get(key: string): string | null {
         if (this.isExpired(key)){
             this.deleteRecord(key);
             return null;
@@ -154,7 +154,7 @@ export class Redis {
         return this.store.get(key) || null;
     }
 
-    set(key: string, value: string): boolean {
+    private set(key: string, value: string): boolean {
         this.store.set(key, value);
         return true;
     }
